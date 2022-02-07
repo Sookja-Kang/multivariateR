@@ -61,6 +61,31 @@ matrix(1:8, nrow=2, byrow = FALSE)
 ```{r}
 matrix(1:8, nrow = 2, byrow = TRUE)
 ```
+```{r}
+A <- matrix(1:8, nrow = 2, byrow=TRUE)
+B <- matrix(c(1, 2, 5, 1, 2, 3, 6, 4, 1, 5, 8, 10), ncol = 3)
+C <- matrix(c(1, 2, 2, 4), nrow = 2)
+
+#list() creates a list of matrix/data.#
+mats <- list("A" = A, 
+             "B" = B, 
+             "C" = C)
+
+mats
+
+```
+```{r}
+#dim() will tell you the dimensions of a matrix
+dim(A)
+```
+```{r}
+#sapply(x, f), where x is a vector, and f is a function to be applied to each element of x
+dims <- sapply(mats, dim)
+(dims <- sapply(mats, dim)) # wrapping an object assignment in parentheses will also print the output
+```
+```{r}
+
+```
 
 #Lab 3#
 ```{r}
