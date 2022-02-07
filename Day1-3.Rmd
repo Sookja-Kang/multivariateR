@@ -1,0 +1,163 @@
+---
+title: "Multivariate"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+#Lab 1#
+```{r}
+#indepdent t-test example#
+simulation <- c(2, 5, 5, 6, 6, 7, 8, 9)
+flight <- c(1, 1, 2, 3, 3, 4, 5, 7, 7, 8)
+
+flight[1] #call out the first number in flight data#
+
+hist(simulation)
+hist(flight)
+```
+```{r}
+sum(flight)
+#na.rm means remove na (missing data), default is false (including na)
+```
+
+```{r}
+n.1 <- length(simulation)
+n.2 <- length(flight)
+
+n.1
+```
+```{r}
+mean(simulation)
+```
+
+#Lab 2#
+```{r}
+1:8
+matrix(1:8, nrow=2, byrow = FALSE)
+```
+```{r}
+matrix(1:8, nrow = 2, byrow = TRUE)
+```
+
+#Lab 3#
+```{r}
+library(pacman)
+p_load(tidyverse, ggplot2, GGally, mvoutlier, mvnormtest, rstatix, psych)
+
+```
+
+```{r}
+df <- iris
+df %>% ggplot(
+  aes(
+    Petal.Length, Sepal.Length)) +
+  geom_point(size=3, alpha=.3) 
+
+```
+```{r}
+ggplot(df, aes(Petal.Length, Sepal.Length, color=Species))+
+  geom_point(size=3, alpha=.3)
+```
+```{r}
+df %>% ggplot(aes(Petal.Length, fill = Species)) +
+  geom_histogram(alpha = .5) +
+  theme_minimal()
+```
+```{r}
+df %>% ggplot(aes(Petal.Length, fill = Species)) +
+  geom_histogram(alpha = .5) +
+  theme_minimal() +
+  facet_grid(~Species)
+```
+```{r}
+ggplot(df, aes(Petal.Length, Petal.Width))+
+  geom_point(size=3, alpha=.3)+
+  geom_density_2d()
+```
+
+```{r}
+ggplot(df, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_density_2d(aes(color = Species)) +
+ labs(title = "All species density") +
+   theme_minimal()
+```
+```{r}
+ggplot(df, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_density_2d(aes(color = Species)) +
+  geom_point(aes(color = Species), alpha = .5)+
+  facet_wrap(~ Species)+
+  labs(title = "All species density") +
+  theme_bw()
+```
+```{r}
+df_setosa <- df %>%
+  filter(Species == "setosa")
+
+
+ggplot(df_setosa, mapping = aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_bin2d(binwidth = 0.2) + 
+  scale_fill_continuous(low="lavenderblush", high="red") +
+  labs(title = "setosa data only") +
+  theme_minimal()
+```
+
+```{r}
+install.packages("mosaicData")
+data(CPS85 , package = "mosaicData")
+glimpse(CPS85)
+```
+```{r}
+ggplot(data = CPS85,
+       mapping = aes(x = exper, y = wage)) +
+  geom_point(alpha = .5,
+             size = 2) +
+  geom_smooth(method = "lm")
+```
+```{r}
+ggplot(data = CPS85,
+       mapping = aes(x = exper, 
+                     y = wage,
+                     color = sex)) +
+  geom_point(alpha = .7,
+             size = 3) +
+  geom_smooth(method = "lm", 
+              se = FALSE)
+```
+```{r}
+pairs(df)
+```
+```{r}
+ggpairs(df, aes(color=Species, alpha=.4))
+```
+```{r}
+chisq.plot(df[,1:4], quan=1, ask=FALSE)
+```
+```{r}
+#selcting specices == or != (except) 
+mardia(df[df$Species != "setosa",1:4])
+
+```
+
