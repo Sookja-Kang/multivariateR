@@ -1,0 +1,216 @@
+---
+title: "HW1_MV"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("~/Desktop")
+library(pacman)
+p_load(readxl, dplyr, biotools, purrr, Hotelling, rstatix, heplots, corrr)
+p_load(ggplot2, GGally, mvoutlier, mvnormtest, rstatix, psych, MVN)
+data <- read_excel("satscores.xlsx")
+df = data.frame(data)
+```
+```{r}
+head(df)
+df_gp <- group_split(df, Group, .keep = F)
+```
+#Q1.Use descriptive statistics to describe the dataset. Compute the covariance and correlation matrices using all 3 scores: math, reading, and writing. Is there a strong correlationbetween the variables? Compute the matrices for each group separately and describe your results.
+##a. R command: cov() and cor()
+
+```{r}
+df_gp %>% 
+  map(~cov(.))
+```
+```{r}
+df_gp %>% 
+  map(~cor(.))
+```
+>>All variables in both Group 1 and 2 have a positive correlation.
+In Group 1, all three pairs (reading and writing, reading and math, and math and writing) show a positive moderate  correlation.
+In Group 2, (reading and writing) and (math and reading) have a positive moderate correlation. However, the relationship between math and writing shows a positive weak correlation.
+
+#2. Compute the eigenvalues using the correlation matrix for the scores in Group 1 and Group 2 separately. What percentage is the first eigenvalue to the sum of eigenvalues for each?#
+
+```{r}
+df_gp %>% 
+  map(~cor(.)) %>%
+  map(~eigen(.))
+```
+```{r}
+Eigenvalue_group1 = (2.0777642 / (2.0777642+0.5202470+0.4019887)*100)
+Eigenvalue_group1
+```
+>>69.26% variance explained by 1st eigenvalue for the group 1
+
+```{r}
+Eigenvalue_group2 = (2.0005112 / (2.0005112 + 0.6341255 + 0.3653633)*100)
+Eigenvalue_group2
+```
+>>66.68% variance explained by 1st eigenvalue for the group 2
+
+```{r}
+df1 <- data %>% 
+  filter(Group == 1) %>%
+  dplyr::select(-Group)
+
+df2 <- data %>% 
+  filter(Group == 2) %>% 
+  dplyr::select(-Group)
+
+```
+
+#3. Assess if univariate normality has been achieved using each set of scores for Group 1 and Group 2 separately. Plot the Q-Q plot and histogram. Compute the univariate Shapiro-Wilk test for each variable to assess univariate normality. Discuss your results.
+
+```{r}
+df1 %>% ggplot(aes(Writing)) +
+  geom_histogram() 
+df2 %>% ggplot(aes(Writing)) +
+  geom_histogram()
+```
+
+
+```{r}
+df1 %>% ggplot(aes(Reading)) +
+  geom_histogram() 
+df2 %>% ggplot(aes(Reading)) +
+  geom_histogram()
+```
+
+
+```{r}
+df1 %>% ggplot(aes(Math)) +
+  geom_histogram() 
+df2 %>% ggplot(aes(Math)) +
+  geom_histogram()
+```
+```{r}
+ggplot(df1, aes(sample=Reading)) + 
+  stat_qq() +
+  stat_qq_line() 
+```
+```{r}
+ggplot(df1, aes(sample=Writing)) + 
+  stat_qq() +
+  stat_qq_line() 
+```
+```{r}
+ggplot(df1, aes(sample=Math)) + 
+  stat_qq() +
+  stat_qq_line() 
+```
+```{r}
+ggplot(df2, aes(sample=Reading)) + 
+  stat_qq() +
+  stat_qq_line() 
+```
+```{r}
+ggplot(df2, aes(sample=Writing)) + 
+  stat_qq() +
+  stat_qq_line() 
+```
+```{r}
+ggplot(df2, aes(sample=Math)) + 
+  stat_qq() +
+  stat_qq_line()
+```
+  
+  
+```{r}
+#install.packages("MVN")
+library(MVN)
+mvn(df1, univariateTest = "SW")
+```
+```{r}
+mvn(df2, univariateTest = "SW")
+```
+
+>>The Shapiro-Wilk tests using all three variables in both Group 1 and Group 2 show statistically significant (P value < .05). This means that univariate normality test for Reading, Writing, and Math has not met. The histogram of each variable doesn't present normal distribution. Also, the points on Q-Q plots doesn't follow the Q-Q line, which means non-normality.
+
+
+#Assess bivariate normality by reviewing the pairs scatterplot plot for all three scores with Group 1 and Group 2 separately. Discuss what is observed. Does it look like bivariate normality has been achieved?
+```{r}
+pairs(df1)
+pairs(df2)
+```
+ 
+ 
+>>When we check bivariate normality using the scatterplot, we expect to see ellipse if the bivariate normality assumption has met. It is hard to visually assessthe bivariate normality when the sample size is small. Based on the pair scatter plots of Group 1, the scatterplot of math and writing looks like an ellipse shape. The pair scatter plots of Group 2 do not show any ellipse shapes. However, further test is required to confirm whether or not bivariate normality has met.
+
+
+
+#The above does not guarantee multivariate normality. Assess if multivariate normality is achieved in your dataset. For each group, conduct the Mardia’s test, the Multivariate Shapiro-Wilks test, and Chi-Square Q-Q Plot. Do the methods agree in their assessment of multivariate normality for the group? Remember, each method has its own sensitivity to measuring normality, so different values are expected. Based on your judgement, was the assumption of multivariate normality met for each group?#
+```{r}
+mvn(df1, 
+    mvnTest = "mardia", 
+    multivariatePlot = "qq", 
+    multivariateOutlierMethod = "quan",
+    showOutliers = T)
+```
+```{r}
+mvnormtest::mshapiro.test(t(df1))
+```
+
+>> Group1
+There are diaagrement across different methods to test mulitivariate normality. First, Mardia Skewness and Kurtosis are used and are not statistically significant, which indicates mulitivariate normality has met. Points on the chi-square Q-Q plot are aligned with the lenear line even though there are three outliers in the dataset.  However, multivariate Shapiro-Wilk test shows that mulivariate normal distribution has been violated. 
+
+
+```{r}
+mvn(df2, 
+    mvnTest = "mardia", 
+    multivariatePlot = "qq", 
+    multivariateOutlierMethod = "quan",
+    showOutliers = T)
+```
+```{r}
+mvnormtest::mshapiro.test(t(df2))
+```
+>>Group2
+All tests show agreement on that mulitivariate normality has met. First, points on the chi-square Q-Q plot are aligned with the linear line and only one datapoint is consider as an outlier. Also, Mardia Skewness and Kurtosis indicate that mulitivariate normality has met. Lastly, multivariate Shapiro-Wilk test is not statistically that mulivariate normal distribution has been violated. First, Mardia Skewness and Kurtosis are used and are not statistically significant, which indicates mulitivariate normality has met. 
+
+#6. Visualize your data using 3 graphics. You do not need to limit your options to what was discussed in class. There are many ways to view data, and we were able to touch upon a few. Feel free to use graphics that you feel might tell your story better. Do you detect any outliers or patterns in your data? Did you find anything interesting? Please explain for both.
+
+```{r}
+ggplot(df1, aes(Reading, Writing))+
+  geom_point(size=3, alpha=.3)+
+  geom_density_2d()
+
+ggplot(df2, aes(Reading, Writing))+
+  geom_point(size=3, alpha=.3)+
+  geom_density_2d()
+```
+
+
+```{r}
+library(ggExtra)
+
+p1 <- ggplot(df1, aes(Reading, Writing))+
+  geom_point(size=3, alpha=.3)
+ggMarginal(p1, type = "density")
+```
+
+
+```{r}
+p2 <- ggplot(df2, aes(Reading, Writing))+
+  geom_point(size=3, alpha=.3)
+
+ggMarginal(p2, type = "density")
+```
+
+>>Assessing the bivariate density between writing and reading in Group1 indicates there is one outlier. Otherwise, it looks normally distributed. The bivariate density between writing and reading in Group2 clearly shows one outlier and doesn’t indicate normally distributed. I can see the similar patterns in the marginal distribution plots using the same variables for both groups.
+
+```{r}
+df_Group <- df %>% 
+  mutate(GP = as.factor(Group))
+
+ggpairs(df_Group, aes(color=GP, alpha=.4))
+```
+
+>>This output shows each pairwise combination of variables using different types of plots and information. This output provides a quick overview in terms of normality, correlation, and outliers using pair combination of variables. I can have a rough conclusion that this dataset might violate normality and needs a further test, which overlaps with findings from prior tests. 
+
